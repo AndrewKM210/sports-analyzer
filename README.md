@@ -20,9 +20,9 @@ Requires Python 3.11+.
 uv sync
 uv run sports-analyzer --help
 
-# or with venv + pip (pip >= 25.1 for --group)
+# or with venv + pip
 python -m venv .venv && source .venv/bin/activate
-pip install -e . --group dev
+pip install -e .
 sports-analyzer --help
 ```
 
