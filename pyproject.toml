@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Detect sponsor logos in sports footage and measure their on-screen exposure."
 readme = "README.md"
 requires-python = ">=3.11"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
 dependencies = [
     "clip",
     "opencv-python>=5.0.0.93",

@@ -26,6 +26,10 @@ pip install -e .
 sports-analyzer --help
 ```
 
-## Data and licensing
+## Data
 
 Broadcast footage is copyrighted. Clips are used locally only and are never committed; `data/` and `outputs/` are gitignored. Put your own clips in `data/videos/`.
+
+## License
+
+[AGPL-3.0](LICENSE), the same licence as [Ultralytics](https://github.com/ultralytics/ultralytics), which this project builds on.
