@@ -15,7 +15,14 @@
 - [x] Measure throughput and note quality
 - [x] Per-sport configs
 
-## Phase 2: Tracking and metrics
+## Phase 2: Fine-tuned YOLO
+
+- [ ] Pick 3-5 brands and get a dataset
+- [ ] Colab training notebook
+- [ ] Fine-tuned detector option
+- [ ] Compare with zero-shot
+
+## Phase 3: Tracking and metrics
 
 - [ ] Track IDs with ByteTrack
 - [ ] Merge tracks into appearances
@@ -23,13 +30,6 @@
 - [ ] Tests for metrics
 - [ ] Export report (CSV, JSON) and raw detections
 - [ ] Timeline chart
-
-## Phase 3: Fine-tuned YOLO
-
-- [ ] Pick 3-5 brands and get a dataset
-- [ ] Colab training notebook
-- [ ] Fine-tuned detector option
-- [ ] Compare with zero-shot
 
 ## Phase 4: Demo and README
 
