@@ -9,10 +9,11 @@
 
 ## Phase 1: Zero-shot detection
 
-- [ ] YOLO-World detector with brand prompts from a config file
-- [ ] Run on a short clip with frame sampling
-- [ ] Save annotated video
-- [ ] Measure throughput and note quality
+- [x] YOLO-World detector with brand prompts from a config file
+- [x] Run on a short clip with frame sampling
+- [x] Save annotated video
+- [x] Measure throughput and note quality
+- [x] Per-sport configs
 
 ## Phase 2: Tracking and metrics
 
