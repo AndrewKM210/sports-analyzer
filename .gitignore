@@ -6,5 +6,6 @@
 *.pt
 
 # Data
+data/
 *.mp4
 *.jpg
