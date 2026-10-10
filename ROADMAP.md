@@ -18,6 +18,7 @@
 ## Phase 2: Fine-tuned YOLO
 
 - [ ] Pick 3-5 brands and get a dataset
+- [ ] Label a larger dataset in CVAT
 - [ ] Colab training notebook
 - [ ] Fine-tuned detector option
 - [ ] Compare with zero-shot
