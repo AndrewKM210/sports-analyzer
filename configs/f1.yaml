@@ -1,0 +1,14 @@
+# F1: zero-shot detection settings
+model: yolov8s-worldv2.pt
+conf: 0.05
+imgsz: 1280
+sample_every: 2
+
+brands:
+  Aramco:  ["Aramco logo"]
+  Shell: ["Shell logo"]
+  HP: ["HP logo"]
+  Salesforce: ["Salesforce logo"]
+  Mastercard: ["Mastercard logo"]
+  Intel: ["Intel logo"]
+  Microsoft: ["Microsoft logo"]
