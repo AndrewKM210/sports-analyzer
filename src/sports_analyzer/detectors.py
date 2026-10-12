@@ -1,10 +1,12 @@
 """Logo detectors."""
 
 from dataclasses import dataclass
+from typing import Protocol
 
 import numpy as np
 import torch
-from ultralytics import YOLOWorld
+from ultralytics import YOLO, YOLOWorld
+from ultralytics.engine.results import Results
 
 
 @dataclass
@@ -17,6 +19,15 @@ class Detection:
     y1: float
     x2: float
     y2: float
+
+
+class Detector(Protocol):
+    """Interface shared by all detectors."""
+
+    brands: list[str]
+    device: str
+
+    def detect(self, frame: np.ndarray) -> list[Detection]: ...
 
 
 def default_device() -> str:
@@ -57,8 +68,29 @@ class ZeroShotDetector:
             agnostic_nms=True,  # one box per logo, even when several prompts match it
             verbose=False,
         )[0]
-        boxes = result.boxes
-        return [
-            Detection(self.class_brands[int(cls)], conf, *xyxy)
-            for xyxy, conf, cls in zip(boxes.xyxy.tolist(), boxes.conf.tolist(), boxes.cls.tolist())
-        ]
+        return to_detections(result, self.class_brands)
+
+
+class FinetunedDetector:
+    """YOLO model fine-tuned on logo images. Brand names come from the model's classes."""
+
+    def __init__(self, weights: str, conf: float = 0.25, imgsz: int = 1280, device: str | None = None) -> None:
+        self.model = YOLO(weights)
+        self.brands = list(self.model.names.values())
+        self.conf = conf
+        self.imgsz = imgsz
+        self.device = device or default_device()
+
+    def detect(self, frame: np.ndarray) -> list[Detection]:
+        """Detect logos in a BGR frame."""
+        result = self.model.predict(frame, conf=self.conf, imgsz=self.imgsz, device=self.device, verbose=False)[0]
+        return to_detections(result, self.brands)
+
+
+def to_detections(result: Results, class_brands: list[str]) -> list[Detection]:
+    """Convert an Ultralytics result to detections, mapping class indices to brand names."""
+    boxes = result.boxes
+    return [
+        Detection(class_brands[int(cls)], conf, *xyxy)
+        for xyxy, conf, cls in zip(boxes.xyxy.tolist(), boxes.conf.tolist(), boxes.cls.tolist())
+    ]

@@ -1,9 +1,18 @@
-# F1: zero-shot detection settings
-model: yolov8s-worldv2.pt
-conf: 0.05
-imgsz: 1280
+# F1 brands and detection settings
 sample_every: 2
 
+zeroshot:
+  weights: yolov8s-worldv2.pt
+  conf: 0.05
+  imgsz: 1280
+
+finetuned:
+  weights: runs/detect/f1/weights/best.pt
+  conf: 0.25
+  # imgsz: 960
+  imgsz: 1280
+
+# Brand -> zero-shot text prompts. The order is also the class order for fine-tuning.
 brands:
   Aramco:  ["Aramco logo"]
   Shell: ["Shell logo"]

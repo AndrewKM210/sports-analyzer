@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from sports_analyzer.detect import ZeroShotDetector
+from sports_analyzer.detectors import Detector, FinetunedDetector, ZeroShotDetector
 from sports_analyzer.pipeline import analyze_video
 
 CONFIG_DIR = Path("configs")
@@ -21,13 +21,14 @@ def main() -> None:
 
     analyze = commands.add_parser("analyze", help="detect logos in a video and save an annotated copy")
     analyze.add_argument("video", type=Path)
-    analyze.add_argument("--detector", choices=["zeroshot"], default="zeroshot")
+    analyze.add_argument("--detector", choices=["zeroshot", "finetuned"], default="zeroshot")
     analyze.add_argument(
         "--sport",
         required=True,
         choices=sorted(p.stem for p in CONFIG_DIR.glob("*.yaml")),
         help="which configs/<sport>.yaml to use for brands and detection settings",
     )
+    analyze.add_argument("--weights", help="model weights (overrides config)")
     analyze.add_argument("--every", type=int, help="run detection on every Nth frame (overrides config)")
     analyze.add_argument("--conf", type=float, help="confidence threshold (overrides config)")
     analyze.add_argument("--device", help="cpu or mps (default: mps when available)")
@@ -38,13 +39,14 @@ def main() -> None:
     every = args.every or config["sample_every"]
     output = args.output or Path("outputs") / f"{args.video.stem}_{args.detector}.mp4"
 
-    detector = ZeroShotDetector(
-        config["brands"],
-        weights=config["model"],
-        conf=args.conf if args.conf is not None else config["conf"],
-        imgsz=config["imgsz"],
-        device=args.device,
-    )
+    settings = config[args.detector]
+    weights = args.weights or settings["weights"]
+    conf = args.conf if args.conf is not None else settings["conf"]
+    detector: Detector
+    if args.detector == "zeroshot":
+        detector = ZeroShotDetector(config["brands"], weights, conf, settings["imgsz"], args.device)
+    else:
+        detector = FinetunedDetector(weights, conf, settings["imgsz"], args.device)
     stats = analyze_video(args.video, detector, output, every)
 
     print(

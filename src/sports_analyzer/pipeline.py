@@ -8,7 +8,7 @@ from pathlib import Path
 import cv2
 
 from sports_analyzer.annotate import draw_detections
-from sports_analyzer.detect import ZeroShotDetector
+from sports_analyzer.detectors import Detector
 
 
 @dataclass
@@ -22,7 +22,7 @@ class RunStats:
     detections: Counter[str]
 
 
-def analyze_video(video: Path, detector: ZeroShotDetector, output: Path, sample_every: int = 3) -> RunStats:
+def analyze_video(video: Path, detector: Detector, output: Path, sample_every: int = 3) -> RunStats:
     """Detect logos on every `sample_every`-th frame and save those frames, annotated, to `output`.
 
     The output video keeps the original duration at a frame rate of fps / sample_every.
