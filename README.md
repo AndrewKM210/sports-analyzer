@@ -51,38 +51,43 @@ Each sport has its own config in `configs/<sport>.yaml` with its brands, the tex
 1. Extract frames to label. This saves them to `data/frames/<video>/`, along with a `labels.txt` listing the sport's brands:
 
    ```bash
-   uv run python scripts/extract_frames.py data/videos/f1.mp4 --sport f1 --start 10 --count 60
+   uv run python scripts/extract_frames.py data/videos/f1.mp4 --sport f1 --count 90
    ```
 
-2. Label the frames in YOLO format, loading the class list from `labels.txt` so the class order matches the config. Unzip the labels into `data/labels/<video>/`. Frames without a label file are treated as having no logos.
+2. Label the frames in YOLO format, loading the class list from `labels.txt` so the class order matches the config. Unzip the labels into `data/labels/<video>/`. Frames without a label file are treated as having no logos. If you labelled frames in several batches, copy the frames and labels into one folder each (here `data/frames/f1_full` and `data/labels/f1_full`); the file names keep the frame number, which the next step uses to split by time.
 
-3. Hold out a test set. Move a later stretch of frames (and their labels) into separate `_test` folders, so the model is never trained on them. Neighbouring frames are near-duplicates, so split by time rather than at random.
-
-4. Build the training dataset (the last 20% of the training frames, by time, are used for validation) and the test dataset:
+3. Build the dataset. The video is cut into 2-second blocks and every 5th block goes to validation, so neighbouring near-identical frames stay on the same side while validation still covers the whole video. The script warns about brands that end up only in train or only in val:
 
    ```bash
-   uv run python scripts/prepare_dataset.py data/frames/f1_train data/labels/f1_train --sport f1
-   uv run python scripts/prepare_dataset.py data/frames/f1_test data/labels/f1_test --sport f1 \
-     --out data/datasets/f1_test --val-fraction 1.0
+   uv run python scripts/prepare_dataset.py data/frames/f1_full data/labels/f1_full --sport f1
    ```
 
-5. Train:
+4. Train locally:
 
    ```bash
-   uv run yolo detect train data=data/datasets/f1/data.yaml model=yolo11n.pt \
-     epochs=50 imgsz=960 batch=8 device=mps cache=ram name=f1 exist_ok=True
+   uv run sports-analyzer train data/datasets/f1/data.yaml --name f1 --epochs 50 --imgsz 960
    ```
 
-   The weights are saved to `runs/detect/f1/weights/best.pt`, which is where `configs/f1.yaml` looks for them.
+   Weights are saved to `runs/detect/<name>/weights/best.pt` (`configs/f1.yaml` looks in `runs/detect/f1`). Ultralytics saves a checkpoint after every epoch, so if training stops for any reason, run the same command again and it resumes after the last completed epoch. A finished run is never overwritten; use a new `--name` to train again.
 
-6. Evaluate on the test set (precision, recall and mAP per brand), and compare both detectors on the test clip:
+   Or train on a free Colab GPU with [notebooks/finetune_colab.ipynb](notebooks/finetune_colab.ipynb) ([open in Colab](https://colab.research.google.com/github/AndrewKM210/sports-analyser/blob/main/notebooks/finetune_colab.ipynb)), which installs this package from GitHub and saves runs to Google Drive. Zip the dataset and upload it to `MyDrive/sports-analyzer/datasets/`:
 
    ```bash
-   uv run yolo detect val model=runs/detect/f1/weights/best.pt data=data/datasets/f1_test/data.yaml \
-     imgsz=960 device=mps name=f1_test exist_ok=True
-   uv run sports-analyzer analyze data/videos/f1_test.mp4 --sport f1 --detector finetuned
-   uv run sports-analyzer analyze data/videos/f1_test.mp4 --sport f1 --detector zeroshot
+   cd data/datasets && zip -r f1.zip f1 -x '*.cache'
    ```
+
+   If Colab disconnects, run all cells again to resume.
+
+5. Evaluate on the validation split (precision, recall and mAP per brand), and compare both detectors on the whole video:
+
+   ```bash
+   uv run yolo detect val model=runs/detect/f1/weights/best.pt data=data/datasets/f1/data.yaml \
+     imgsz=960 name=f1_val exist_ok=True
+   uv run sports-analyzer analyze data/videos/f1.mp4 --sport f1 --detector finetuned
+   uv run sports-analyzer analyze data/videos/f1.mp4 --sport f1 --detector zeroshot
+   ```
+
+   The video includes the frames the model was trained on, so use it to see the detector working and, later, to measure exposure; take accuracy numbers from the validation split.
 
 ## Data
 
