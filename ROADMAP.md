@@ -19,9 +19,9 @@
 
 - [ ] Pick 3-5 brands and get a dataset
 - [ ] Label a larger dataset in CVAT
-- [ ] Colab training notebook
-- [ ] Fine-tuned detector option
-- [ ] Compare with zero-shot
+- [x] Colab training notebook
+- [x] Fine-tuned detector option
+- [x] Compare with zero-shot
 
 ## Phase 3: Tracking and metrics
 

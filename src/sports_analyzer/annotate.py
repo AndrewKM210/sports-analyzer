@@ -3,7 +3,7 @@
 import numpy as np
 from ultralytics.utils.plotting import Annotator, colors
 
-from sports_analyzer.detect import Detection
+from sports_analyzer.detectors import Detection
 
 
 def draw_detections(frame: np.ndarray, detections: list[Detection], brands: list[str]) -> np.ndarray:
