@@ -6,6 +6,7 @@ from typing import Protocol
 import numpy as np
 import torch
 from ultralytics import YOLO, YOLOWorld
+from ultralytics.engine.model import Model
 from ultralytics.engine.results import Results
 
 
@@ -26,6 +27,8 @@ class Detector(Protocol):
 
     brands: list[str]
     device: str
+    imgsz: int
+    model: Model
 
     def detect(self, frame: np.ndarray) -> list[Detection]: ...
 
