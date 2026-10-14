@@ -31,8 +31,9 @@ class Detector(Protocol):
 
 
 def default_device() -> str:
-    # TODO: extend to CUDA as well
-    """Use the Apple Silicon GPU when available, otherwise the CPU."""
+    """Use an NVIDIA GPU (e.g. on Colab) or the Apple Silicon GPU when available, otherwise the CPU."""
+    if torch.cuda.is_available():
+        return "cuda"
     return "mps" if torch.backends.mps.is_available() else "cpu"
 
 
