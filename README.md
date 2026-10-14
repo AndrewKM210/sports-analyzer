@@ -1,15 +1,20 @@
 # Sports Analyzer: Sponsor Exposure Tracker
 
-> **Status: work in progress.** See [ROADMAP.md](ROADMAP.md) for the plan and progress.
+Detects sponsor logos in sports footage, as a first step towards measuring how much exposure each brand gets.
 
-## What it produces
+> **Status: work in progress.** See [ROADMAP.md](ROADMAP.md) for progress.
 
-Given a video clip:
+## What it does so far
 
-- an annotated video with bounding boxes, brand labels and track IDs
-- a per-brand exposure report (`report.csv`, `report.json`) and the raw detections (`detections.csv`)
-- a timeline chart showing when each brand was visible
-- a Gradio web demo for uploading a clip and viewing the results
+- Runs logo detection on a video clip and saves an annotated copy with bounding boxes and brand labels
+- Two detectors behind one CLI: zero-shot YOLO-World (brands as text prompts) and a fine-tuned YOLO
+- Per-sport configs with the brands, prompts and thresholds
+- Tooling to fine-tune on your own footage: frame extraction for labelling, versioned datasets split by time, resumable training (locally or on Colab) and per-brand evaluation
+- **Result:** on F1 footage, zero-shot finds no real logos, while a YOLO11s fine-tuned on 69 labelled frames reaches mAP50 0.61 on held-out frames ([details](#results))
+
+## Planned
+
+Not started yet: tracking logos across frames to turn detections into per-brand exposure metrics (screen time, number of appearances, screen share), exported as CSV/JSON with a timeline chart, and a Gradio demo.
 
 ## Quick start
 
