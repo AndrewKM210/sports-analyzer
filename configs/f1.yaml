@@ -7,9 +7,8 @@ zeroshot:
   imgsz: 1280
 
 finetuned:
-  weights: runs/detect/f1/weights/best.pt
-  conf: 0.25
-  # imgsz: 960
+  weights: runs/train/f1_v01_yolo11s_1280/weights/best.pt
+  conf: 0.1
   imgsz: 1280
 
 # Brand -> zero-shot text prompts. The order is also the class order for fine-tuning.
