@@ -21,7 +21,7 @@
 - [ ] Label a larger dataset in CVAT
 - [x] Colab training notebook
 - [x] Fine-tuned detector option
-- [ ] Compare with zero-shot
+- [x] Compare with zero-shot
 
 ## Phase 3: Tracking and metrics
 

@@ -62,32 +62,44 @@ Each sport has its own config in `configs/<sport>.yaml` with its brands, the tex
    uv run python scripts/prepare_dataset.py data/frames/f1_full data/labels/f1_full --sport f1
    ```
 
+   Each build is a new version (`data/datasets/f1_v01`, `f1_v02`, …) and is never overwritten; its `data.yaml` records the frames, labels and split it was made from.
+
 4. Train locally:
 
    ```bash
-   uv run sports-analyzer train data/datasets/f1/data.yaml --name f1 --epochs 50 --imgsz 960
+   uv run sports-analyzer train data/datasets/f1_v01/data.yaml --model yolo11s.pt --epochs 150
    ```
 
-   Weights are saved to `runs/detect/<name>/weights/best.pt` (`configs/f1.yaml` looks in `runs/detect/f1`). Ultralytics saves a checkpoint after every epoch, so if training stops for any reason, run the same command again and it resumes after the last completed epoch. A finished run is never overwritten; use a new `--name` to train again.
+   Runs are named after their dataset, model and image size and saved to `runs/train/<name>/`, e.g. `runs/train/f1_v01_yolo11s_1280/weights/best.pt`. Ultralytics saves a checkpoint after every epoch, so if training stops for any reason, run the same command again and it resumes after the last completed epoch. A finished run is never overwritten; a new dataset version or different settings start a new run.
 
-   Or train on a free Colab GPU with [notebooks/finetune_colab.ipynb](notebooks/finetune_colab.ipynb) ([open in Colab](https://colab.research.google.com/github/AndrewKM210/sports-analyser/blob/main/notebooks/finetune_colab.ipynb)), which installs this package from GitHub and saves runs to Google Drive. Zip the dataset and upload it to `MyDrive/sports-analyzer/datasets/`:
+   Or train on a free Colab GPU with [notebooks/finetune_colab.ipynb](notebooks/finetune_colab.ipynb) ([open in Colab](https://colab.research.google.com/github/AndrewKM210/sports-analyser/blob/main/notebooks/finetune_colab.ipynb)), which installs this package from GitHub and saves runs to Google Drive; see [COLAB.md](COLAB.md).
+
+5. Evaluate on a dataset's validation split (precision, recall and mAP per brand). Results go to `runs/val/<dataset>/<model>/`:
 
    ```bash
-   cd data/datasets && zip -r f1.zip f1 -x '*.cache'
+   uv run sports-analyzer evaluate data/datasets/f1_v01/data.yaml --sport f1 --detector finetuned
+   uv run sports-analyzer evaluate data/datasets/f1_v01/data.yaml --sport f1 --detector zeroshot
    ```
 
-   If Colab disconnects, run all cells again to resume.
-
-5. Evaluate on the validation split (precision, recall and mAP per brand), and compare both detectors on the whole video:
+   Then compare both detectors on the whole video:
 
    ```bash
-   uv run yolo detect val model=runs/detect/f1/weights/best.pt data=data/datasets/f1/data.yaml \
-     imgsz=960 name=f1_val exist_ok=True
    uv run sports-analyzer analyze data/videos/f1.mp4 --sport f1 --detector finetuned
    uv run sports-analyzer analyze data/videos/f1.mp4 --sport f1 --detector zeroshot
    ```
 
    The video includes the frames the model was trained on, so use it to see the detector working and, later, to measure exposure; take accuracy numbers from the validation split.
+
+## Results
+
+Zero-shot detection with YOLO-World found no real logos in F1 footage. A YOLO11s fine-tuned on 69 labelled frames (12 minutes on a free Colab GPU) reaches precision 0.59, recall 0.60 and mAP50 0.61 on held-out frames:
+
+| Detector | Precision | Recall | mAP50 |
+|---|---|---|---|
+| Zero-shot YOLO-World | 0 | 0 | 0 |
+| Fine-tuned YOLO11s | 0.59 | 0.60 | 0.61 |
+
+The validation set is small (35 boxes), so treat these as indicative. Details, per-brand results and caveats: [reports/finetuning.md](reports/finetuning.md).
 
 ## Data
 
