@@ -9,3 +9,7 @@
 data/
 *.mp4
 *.jpg
+
+# Training output (contains images made from broadcast frames)
+runs/
+*.zip
