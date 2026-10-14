@@ -8,11 +8,15 @@ The video is cut into blocks of a few seconds and every Nth block goes to valida
 stay together, so near-identical neighbouring frames don't end up in both train and val, while
 validation still samples the whole video. Brands that end up in only one split are reported,
 since their validation scores mean nothing.
+
+Datasets are versioned (data/datasets/<sport>_v01, _v02, ...) and never overwritten, so a training
+run can always be traced back to the exact data it used. data.yaml records where the data came from.
 """
 
 import argparse
 import shutil
 from collections import Counter
+from datetime import date
 from pathlib import Path
 
 import yaml
@@ -26,11 +30,13 @@ def main() -> None:
     parser.add_argument("--block-seconds", type=float, default=2.0, help="length of the blocks the video is cut into")
     parser.add_argument("--val-every", type=int, default=5, help="every Nth block goes to validation")
     parser.add_argument("--fps", type=float, default=60.0, help="frame rate of the source video")
-    parser.add_argument("--out", type=Path, help="dataset folder (default: data/datasets/<sport>)")
+    parser.add_argument("--out", type=Path, help="dataset folder (default: the next data/datasets/<sport>_vNN)")
     args = parser.parse_args()
 
     brands = list(yaml.safe_load((Path("configs") / f"{args.sport}.yaml").read_text())["brands"])
-    out = args.out or Path("data/datasets") / args.sport
+    out = args.out or next_version(Path("data/datasets"), args.sport)
+    if out.exists():
+        raise SystemExit(f"{out} already exists; datasets aren't overwritten, so pick a new --out")
     pairs = [(img, args.labels / f"{img.stem}.txt") for img in sorted(args.frames.glob("*.jpg"))]
 
     def is_val(img: Path) -> bool:
@@ -41,8 +47,6 @@ def main() -> None:
     if not splits["train"] or not splits["val"]:
         raise SystemExit("Train or val is empty; use shorter --block-seconds or a smaller --val-every")
 
-    for sub in ("images", "labels"):
-        shutil.rmtree(out / sub, ignore_errors=True)
     boxes: dict[str, Counter[str]] = {}
     for split, items in splits.items():
         boxes[split] = Counter()
@@ -64,9 +68,27 @@ def main() -> None:
             print(f"Warning: {brand} is only in val ({n_val} boxes); the model can't learn it, so it will score 0")
 
     # No "path" key: Ultralytics then resolves folders relative to data.yaml, so the dataset can be moved (e.g. to Colab)
-    data = {"train": "images/train", "val": "images/val", "names": dict(enumerate(brands))}
+    data = {
+        "train": "images/train",
+        "val": "images/val",
+        "names": dict(enumerate(brands)),
+        "source": {  # ignored by Ultralytics; records how this version was made
+            "frames": str(args.frames),
+            "labels": str(args.labels),
+            "split": f"{args.block_seconds:g} s blocks at {args.fps:g} fps, 1 in {args.val_every} to val",
+            "created": date.today().isoformat(),
+        },
+    }
     (out / "data.yaml").write_text(yaml.safe_dump(data, sort_keys=False))
     print(f"Dataset config: {out / 'data.yaml'}")
+
+
+def next_version(root: Path, sport: str) -> Path:
+    """The first unused data/datasets/<sport>_vNN folder."""
+    n = 1
+    while (root / f"{sport}_v{n:02d}").exists() or (root / f"{sport}_v{n:02d}.zip").exists():
+        n += 1
+    return root / f"{sport}_v{n:02d}"
 
 
 if __name__ == "__main__":
